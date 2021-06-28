@@ -1,0 +1,8 @@
+*.git
+metrics*
+results*
+**/*.csv
+**/*.json
+**/*.log
+sbr-segment*
+workload.namespace.list

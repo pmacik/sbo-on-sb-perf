@@ -1,0 +1,123 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: sbo-perf-with-sbr
+objects:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: sbo-perf-app
+      labels:
+        app: sbo-perf-app
+    spec:
+      replicas: 1
+      strategy:
+        type: RollingUpdate
+      selector:
+        matchLabels:
+          app: sbo-perf-app
+      template:
+        metadata:
+          labels:
+            app: sbo-perf-app
+        spec:
+          containers:
+          - name: sbo-generic-test-app
+            image: quay.io/redhat-developer/sbo-generic-test-app:20200923
+            imagePullPolicy: IfNotPresent
+            ports:
+            - containerPort: 8080
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: sbo-perf-app
+      name: sbo-perf-app
+    spec:
+      ports:
+      - port: 8080
+        protocol: TCP
+        targetPort: 8080
+      selector:
+        app: sbo-perf-app
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: sbo-perf-app
+      name: sbo-perf-app
+      annotations:
+        service.binding/host: path={.spec.host}
+    spec:
+      port:
+        targetPort: 8080
+      to:
+        kind: "Service"
+        name: sbo-perf-app
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: sbo-perf-svc
+      labels:
+        app: sbo-perf-svc
+    spec:
+      replicas: 1
+      strategy: 
+        type: RollingUpdate
+      selector:
+        matchLabels:
+          app: sbo-perf-svc
+      template:
+        metadata:
+          labels:
+            app: sbo-perf-svc
+        spec:
+          containers:
+          - name: busybox
+            image: busybox
+            imagePullPolicy: IfNotPresent
+            command: ['sh', '-c', 'echo Container 1 is Running ; sleep 3600']
+            ports:
+            - containerPort: 8080
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: sbo-perf-svc
+      name: sbo-perf-svc
+    spec:
+      ports:
+      - port: 8080
+        protocol: TCP
+        targetPort: 8080
+      selector:
+        app: sbo-perf-svc
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      labels:
+        app: sbo-perf-svc
+      name: sbo-perf-svc
+      annotations:
+        service.binding/host: path={.spec.host}
+    spec:
+      port:
+        targetPort: 8080
+      to:
+        kind: "Service"
+        name: sbo-perf-svc
+  - apiVersion: binding.operators.coreos.com/v1alpha1
+    kind: ServiceBinding
+    metadata:
+      name: service-binding
+    spec:
+      services:
+      - group: route.openshift.io
+        version: v1
+        kind: Route
+        name: sbo-perf-svc
+      application:
+        name: sbo-perf-app
+        group: apps
+        version: v1
+        resource: deployments
