@@ -15,7 +15,7 @@ USER_NS_PREFIX=${1:-zippy}
 resource_counts(){
     echo -n "$1;"
     # All resource counts from user namespaces
-    echo -n "$(oc get $1 --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace | grep $USER_NS_PREFIX | wc -l)"
+    echo -n "$(oc get $1 --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace --ignore-not-found=true | grep $USER_NS_PREFIX | wc -l)"
     echo -n ";"
     # All resource counts from all namespaces
     echo "$(oc get $1 --all-namespaces -o name | wc -l)"
@@ -88,7 +88,7 @@ timestamps $RESULTS/service-bindings.json $RESULTS/deployments.json $RESULTS/ser
 {
 RESOURCE_COUNTS_OUT=$RESULTS/resource-count.csv
 echo "Resource;UserNamespaces;AllNamespaces" > $RESOURCE_COUNTS_OUT
-for i in $(cat resources.list); do
+for i in $(oc api-resources --verbs=list --namespaced -o name); do
     resource_counts $i >> $RESOURCE_COUNTS_OUT;
 done
 } &
