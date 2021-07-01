@@ -41,17 +41,16 @@ spec:
       type: string
       description: Number of application+backing service+2xservice binding sets to generate per namespace
       default: "1"
-
   stepTemplate:
     volumeMounts:
       - mountPath: /tmp/workspace/
         name: workspace
   steps:
     - name: setup
-      image: quay.io/pmacik/tekton-poc:setup
+      image: image-registry.openshift-image-registry.svc:5000/default/sbo-perf-step-setup:latest
 
     - name: create-ocp
-      image: quay.io/pmacik/tekton-poc:create-ocp
+      image: image-registry.openshift-image-registry.svc:5000/default/sbo-perf-step-create-ocp:latest
       envFrom:
         - secretRef:
             name: aws-credentials
@@ -79,7 +78,7 @@ spec:
           name: openshift-installer
 
     - name: test
-      image: quay.io/pmacik/tekton-poc:test
+      image: image-registry.openshift-image-registry.svc:5000/default/sbo-perf-step-test:latest
       envFrom:
         - secretRef:
             name: quay-credentials

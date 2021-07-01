@@ -29,6 +29,10 @@ push-all:
 install-secrets:
 	cat *secret.yaml | oc apply -f -
 
+.PHONY: install-step-images
+install-step-images:
+	for i in $(STEPS); do sed -e "s,@@STEP@@,$$i,g" sbo-perf/steps/buildconfig_imagestream_template.yaml | oc apply -f -; done
+
 .PHONY: install-pipelines-operator
 install-pipelines-operator:
 	./hack/install-pipelines-operator.sh
