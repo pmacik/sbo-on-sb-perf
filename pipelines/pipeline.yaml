@@ -1,0 +1,73 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: sbo-perf
+spec:
+  params:
+    - name: ocp-version
+      type: string
+      description: OCP Version
+      default: "4.7"
+    - name: ocp-release-dir
+      type: string
+      description: OCP release dir
+      default: "ocp"
+    - name: user-ns-prefix
+      type: string
+      description: Prefix of user namespaces
+      default: "sbo-perf"
+    - name: namespaces
+      type: string
+      description: Number of Namespaces to generate
+      default: "10"
+    - name: secrets
+      type: string
+      description: Number of number of secrets to generate per namespace
+      default: "5"
+    - name: configmaps
+      type: string
+      description: Number of config maps to generate per namespace
+      default: "5"
+    - name: values-per-secret
+      type: string
+      description: Number of values to generate per secret
+      default: "5"
+    - name: values-per-configmap
+      type: string
+      description: Number of values to generate per config map
+      default: "5"
+    - name: bindings
+      type: string
+      description: Number of application+backing service+2xservice binding sets to generate per namespace
+      default: "1"
+  tasks:
+    - name: sbo-perf
+      taskRef:
+        kind: Task
+        name: sbo-perf
+      workspaces:
+        - name: artifacts
+          workspace: artifacts
+      timeout: 5h
+      params:
+        - name: ocp-version
+          value: "$(params.ocp-version)"
+        - name: ocp-release-dir
+          value: "$(params.ocp-release-dir)"
+        - name: user-ns-prefix
+          value: "$(params.user-ns-prefix)"
+        - name: namespaces
+          value: "$(params.namespaces)"
+        - name: secrets
+          value: "$(params.secrets)"
+        - name: configmaps
+          value: "$(params.configmaps)"
+        - name: values-per-secret
+          value: "$(params.values-per-secret)"
+        - name: values-per-configmap
+          value: "$(params.values-per-configmap)"
+        - name: bindings
+          value: "$(params.bindings)"
+  workspaces:
+    - name: artifacts
