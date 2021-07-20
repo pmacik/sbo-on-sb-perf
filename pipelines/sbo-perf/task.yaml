@@ -8,7 +8,7 @@ spec:
     - name: ocp-version
       type: string
       description: OCP Version
-      default: "4.7"
+      default: "4.8"
     - name: ocp-release-dir
       type: string
       description: OCP release dir
@@ -41,16 +41,14 @@ spec:
       type: string
       description: Number of application+backing service+2xservice binding sets to generate per namespace
       default: "1"
-  stepTemplate:
-    volumeMounts:
-      - mountPath: /tmp/workspace/
-        name: workspace
   steps:
     - name: setup
-      image: image-registry.openshift-image-registry.svc:5000/default/sbo-perf-step-setup:latest
+      image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-setup:latest
+      #image: quay.io/pmacik/tekton-poc:setup
 
     - name: create-ocp
-      image: image-registry.openshift-image-registry.svc:5000/default/sbo-perf-step-create-ocp:latest
+      image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-create-ocp:latest
+      #image: quay.io/pmacik/tekton-poc:create-ocp
       envFrom:
         - secretRef:
             name: aws-credentials
@@ -70,15 +68,16 @@ spec:
         - name: INSTALL_PIPELINES_OPERATOR
           value: "false"
         - name: DEV_SVC_INSTALL_CONFIG
-          value: /tmp/installer/install-config.yaml
+          value: /mnt/installer/install-config.yaml
       volumeMounts:
-        - mountPath: /tmp/kubeconfig/
+        - mountPath: /mnt/kubeconfig/
           name: kubeconfig
-        - mountPath: /tmp/installer/
+        - mountPath: /mnt/installer/
           name: openshift-installer
 
     - name: test
-      image: image-registry.openshift-image-registry.svc:5000/default/sbo-perf-step-test:latest
+      image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-test:latest
+      #image: quay.io/pmacik/tekton-poc:test
       envFrom:
         - secretRef:
             name: quay-credentials
@@ -101,7 +100,7 @@ spec:
           value: $(params.bindings)
 
       volumeMounts:
-        - mountPath: /tmp/kubeconfig/
+        - mountPath: /mnt/kubeconfig/
           name: kubeconfig
   volumes:
     - name: workspace

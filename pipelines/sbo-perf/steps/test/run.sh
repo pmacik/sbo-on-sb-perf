@@ -1,5 +1,6 @@
 #!/bin/bash -xe
 
+export SBO_PERF_RUN_ID=$(cat $WORKSPACE/sbo-perf-run.id)
 oc version
 
 cd $WORKSPACE/src
@@ -23,4 +24,5 @@ done
 ./collect-results.sh $USER_NS_PREFIX
 
 # Archive artifacts
-cp -rvf results* /tmp/artifacts/
+mkdir -p /mnt/artifacts/$SBO_PERF_RUN_ID
+cp -rvf results* /mnt/artifacts/$SBO_PERF_RUN_ID/

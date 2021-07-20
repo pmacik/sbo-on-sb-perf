@@ -8,5 +8,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 500Mi
-  volumeMode: Filesystem
+      storage: 10Gi
+  storageClassName: gp2-csi

@@ -39,8 +39,8 @@ install-pipelines-operator:
 
 .PHONY: install-pipeline
 install-pipeline:
-	cat pipeline.yaml artifacts.pvc.yaml sbo-perf/task.yaml | oc apply -f -
+	cat pipeline.yaml artifacts.*.yaml sbo-perf/task.yaml | oc apply -f -
 
 .PHONY: sbo-perf
 sbo-perf:
-	tkn pipeline start sbo-perf
+	tkn pipeline start sbo-perf --timeout 5h --workspace name=artifacts,claimName=sbo-perf-artifacts,subPath=.

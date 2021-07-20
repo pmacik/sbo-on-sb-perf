@@ -1,6 +1,7 @@
 #!/bin/bash -xe
 
-ls -la /tmp/artifacts
+export SBO_PERF_RUN_ID=$(date +%Y-%m-%d_%H:%M:%S)-$HOSTNAME
+echo $SBO_PERF_RUN_ID > $WORKSPACE/sbo-perf-run.id
 
 git clone https://github.com/pmacik/sbo-on-sb-perf $WORKSPACE/src
 

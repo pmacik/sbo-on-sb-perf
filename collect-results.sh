@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -xe
 
 if [ -z "$QUAY_NAMESPACE" ]; then
     echo "QUAY_NAMESPACE environemnt variable needs to be set to a non-empty value"

@@ -1,0 +1,31 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sbo-perf-artifacts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sbo-perf-artifacts
+  template:
+    metadata:
+      labels:
+        app: sbo-perf-artifacts
+    spec:
+      volumes:
+        - name: sbo-perf-artifacts
+          persistentVolumeClaim:
+            claimName: sbo-perf-artifacts
+      containers:
+        - name: nginx
+          image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-artifacts:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: sbo-perf-artifacts
+              mountPath: /usr/share/nginx/html
+          imagePullPolicy: Always
+      restartPolicy: Always
