@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: sbo-perf-artifacts
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: sbo-perf-artifacts
@@ -17,6 +17,7 @@ spec:
         - name: sbo-perf-artifacts
           persistentVolumeClaim:
             claimName: sbo-perf-artifacts
+            readOnly: true
       containers:
         - name: nginx
           image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-artifacts:latest
@@ -27,5 +28,6 @@ spec:
           volumeMounts:
             - name: sbo-perf-artifacts
               mountPath: /usr/share/nginx/html
+              readOnly: true
           imagePullPolicy: Always
       restartPolicy: Always

@@ -6,7 +6,7 @@ if [ -z "$QUAY_NAMESPACE" ]; then
 fi
 
 DT=$(date "+%F_%T")
-RESULTS=results-$DT
+RESULTS=${RESULTS:-results-$DT}
 mkdir -p $RESULTS
 
 USER_NS_PREFIX=${1:-zippy}
@@ -37,12 +37,12 @@ timestamps(){
         echo -n ";";
         echo -n $(date -d $(echo -n $i | cut -d ";" -f3) "+%F %T");
         echo -n ";";
-        log=$(cat $SBO_LOG | grep $ns)
-        date -d @$(echo $log | jq -rc 'select(.msg | contains("Reconciling")).ts' | head -n1) "+%F %T.%N" | tr -d "\n"
+        log="$(cat $SBO_LOG | grep $ns)"
+        date -d @$(echo $log | jq -rc 'select(.serviceBinding | contains("'$ns/$name'")) | select(.msg | contains("Reconciling")).ts' | head -n1) "+%F %T.%N" | tr -d "\n"
         echo -n ";";
         echo -n $(date -d $(echo -n $i | cut -d ";" -f4) "+%F %T");
         echo -n ";";
-        done_ts=$(echo $log | jq -rc 'select(.msg | contains("Done")) | select(.retry==false).ts')
+        done_ts=$(echo "$log" | jq -rc 'select(.msg | contains("Done")) | select(.serviceBinding | contains("'$ns/$name'")) | select(.retry==false).ts')
         if [ -n "$done_ts" ]; then
             date -d "@$done_ts" "+%F %T.%N"
         else
@@ -51,8 +51,8 @@ timestamps(){
     done >> $RESULTS/sbr-timestamps.csv
     rm -f $RESULTS/tmp.csv
 
-    jq -rc '((.metadata.namespace) + ";" + (.metadata.name) + ";" + (.metadata.creationTimestamp) + ";" + (.status.conditions[] | select(.type=="Available") | select(.status=="True").lastTransitionTime)) + ";" + (.metadata.managedFields[] | select(.manager=="manager").time)' $DEPLOYMENTS_JSON > $RESULTS/tmp.csv
-    echo "Namespace;Deployment;Deployment_Created;Deployment_Available;Deployment_Updated_by_SBO;SB_Name;SB_created;SB_ReconciledTimestamp;SB_Ready;SB_AllDoneTimestamp" > $RESULTS/binding-timestamps.csv
+    jq -rc '((.metadata.namespace) + ";" + (.metadata.name) + ";" + (.metadata.creationTimestamp) + ";" + (.status.conditions[] | select(.type=="Available") | select(.status=="True").lastTransitionTime))' $DEPLOYMENTS_JSON > $RESULTS/tmp.csv
+    echo "Namespace;Deployment;Deployment_Created;Deployment_Available;SB_Name;SB_created;SB_ReconciledTimestamp;SB_Ready;SB_AllDoneTimestamp" > $RESULTS/binding-timestamps.csv
     for i in $(cat $RESULTS/tmp.csv); do
         NS=$(echo -n $i | cut -d ";" -f1);
         echo -n $NS;
@@ -62,8 +62,6 @@ timestamps(){
         echo -n $(date -d $(echo -n $i | cut -d ";" -f3) "+%F %T");
         echo -n ";";
         echo -n $(date -d $(echo -n $i | cut -d ";" -f4) "+%F %T");
-        echo -n ";";
-        echo -n $(date -d $(echo -n $i | cut -d ";" -f5) "+%F %T");
         echo -n ";";
         cat $RESULTS/sbr-timestamps.csv | grep $NS
     done >> $RESULTS/binding-timestamps.csv

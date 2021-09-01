@@ -5,10 +5,14 @@ metadata:
   name: sbo-perf
 spec:
   params:
+    - name: ocp-release
+      type: string
+      description: OCP Release
+      default: "4.7"
     - name: ocp-version
       type: string
       description: OCP Version
-      default: "4.8"
+      default: ""
     - name: ocp-release-dir
       type: string
       description: OCP release dir
@@ -42,15 +46,32 @@ spec:
       description: Number of application+backing service+2xservice binding sets to generate per namespace
       default: "1"
   tasks:
-    - name: sbo-perf
+    - name: sbo-perf-setup
       taskRef:
         kind: Task
-        name: sbo-perf
+        name: sbo-perf-setup
       workspaces:
         - name: artifacts
           workspace: artifacts
       timeout: 5h
       params:
+        - name: ocp-release
+          value: "$(params.ocp-release)"
+        - name: ocp-version
+          value: "$(params.ocp-version)"
+        - name: ocp-release-dir
+          value: "$(params.ocp-release-dir)"
+    - name: sbo-perf-test
+      taskRef:
+        kind: Task
+        name: sbo-perf-test
+      workspaces:
+        - name: artifacts
+          workspace: artifacts
+      timeout: 5h
+      params:
+        - name: ocp-release
+          value: "$(params.ocp-release)"
         - name: ocp-version
           value: "$(params.ocp-version)"
         - name: ocp-release-dir

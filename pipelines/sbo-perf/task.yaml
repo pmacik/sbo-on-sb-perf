@@ -2,17 +2,90 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: sbo-perf
+  name: sbo-perf-setup
 spec:
   params:
+    - name: ocp-release
+      type: string
+      description: OCP Release
+      default: "4.7"
     - name: ocp-version
       type: string
       description: OCP Version
-      default: "4.8"
+      default: ""
     - name: ocp-release-dir
       type: string
       description: OCP release dir
       default: "ocp"
+  steps:
+    - name: setup
+      #image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-setup:latest
+      image: quay.io/pmacik/tekton-poc:setup
+
+    - name: create-ocp
+      #image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-create-ocp:latest
+      image: quay.io/pmacik/tekton-poc:create-ocp
+      envFrom:
+        - secretRef:
+            name: aws-credentials
+      env:
+        - name: OI_VERSION
+          value: "$(params.ocp-version)"
+        - name: OCP4_AWS_CLUSTER_NAME_SUFFIX
+          value: ""
+        - name: OCP_RELEASE
+          value: "$(params.ocp-release)"
+        - name: OCP_RELEASE_DIR
+          value: "$(params.ocp-release-dir)"
+        - name: CLUSTER_BASENAME
+          value: dev-svc
+        - name: INSTALL_TOOLCHAIN_OPERATOR
+          value: "false"
+        - name: INSTALL_PIPELINES_OPERATOR
+          value: "false"
+        - name: DEV_SVC_INSTALL_CONFIG
+          value: /mnt/installer/install-config.yaml
+      volumeMounts:
+        - mountPath: /mnt/installer/
+          name: openshift-installer
+
+    - name: test
+      #image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-test:latest
+      image: quay.io/pmacik/tekton-poc:test
+      envFrom:
+        - secretRef:
+            name: quay-credentials
+      env:
+        #- name: OPERATOR_SDK_VERSION
+        #  value: 1.3.0
+        - name: USER_NS_PREFIX
+          value: $(params.user-ns-prefix)
+        - name: NS
+          value: $(params.namespaces)
+        - name: S
+          value: $(params.secrets)
+        - name: SD
+          value: $(params.values-per-secret)
+        - name: C
+          value: $(params.configmaps)
+        - name: CD
+          value: $(params.values-per-configmap)
+        - name: B
+          value: $(params.bindings)
+  volumes:
+    - name: openshift-installer
+      secret:
+        secretName: dev-svc-sb-perf-install-config
+  workspaces:
+    - name: artifacts
+      mountPath: /mnt/artifacts
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: sbo-perf-test
+spec:
+  params:
     - name: user-ns-prefix
       type: string
       description: Prefix of user namespaces
@@ -42,42 +115,9 @@ spec:
       description: Number of application+backing service+2xservice binding sets to generate per namespace
       default: "1"
   steps:
-    - name: setup
-      image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-setup:latest
-      #image: quay.io/pmacik/tekton-poc:setup
-
-    - name: create-ocp
-      image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-create-ocp:latest
-      #image: quay.io/pmacik/tekton-poc:create-ocp
-      envFrom:
-        - secretRef:
-            name: aws-credentials
-      env:
-        - name: OI_VERSION
-          value: ""
-        - name: OCP4_AWS_CLUSTER_NAME_SUFFIX
-          value: ""
-        - name: OCP_RELEASE
-          value: "$(params.ocp-version)"
-        - name: OCP_RELEASE_DIR
-          value: "$(params.ocp-release-dir)"
-        - name: CLUSTER_BASENAME
-          value: dev-svc
-        - name: INSTALL_TOOLCHAIN_OPERATOR
-          value: "false"
-        - name: INSTALL_PIPELINES_OPERATOR
-          value: "false"
-        - name: DEV_SVC_INSTALL_CONFIG
-          value: /mnt/installer/install-config.yaml
-      volumeMounts:
-        - mountPath: /mnt/kubeconfig/
-          name: kubeconfig
-        - mountPath: /mnt/installer/
-          name: openshift-installer
-
     - name: test
-      image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-test:latest
-      #image: quay.io/pmacik/tekton-poc:test
+      #image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-test:latest
+      image: quay.io/pmacik/tekton-poc:test
       envFrom:
         - secretRef:
             name: quay-credentials
@@ -98,18 +138,9 @@ spec:
           value: $(params.values-per-configmap)
         - name: B
           value: $(params.bindings)
-
-      volumeMounts:
-        - mountPath: /mnt/kubeconfig/
-          name: kubeconfig
-  volumes:
-    - name: workspace
-      emptyDir: {}
-    - name: kubeconfig
-      emptyDir: {}
-    - name: openshift-installer
-      secret:
-        secretName: dev-svc-sb-perf-install-config
+  sidecars:
+    #- image: image-registry.openshift-image-registry.svc:5000/sbo-perf/sbo-perf-step-metrics:latest
+    - image: quay.io/pmacik/tekton-poc:metrics
   workspaces:
     - name: artifacts
       mountPath: /mnt/artifacts

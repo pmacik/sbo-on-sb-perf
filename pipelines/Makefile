@@ -7,7 +7,7 @@ ifeq ($(shell test "$(firstword $(MAKECMDGOALS))" = build -o "$(firstword $(MAKE
 endif
 
 IMAGE_BASE_REF?=quay.io/pmacik/tekton-poc
-STEPS ?= setup create-ocp test
+STEPS ?= setup create-ocp test metrics
 
 .PHONY: build
 build:

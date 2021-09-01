@@ -1,5 +1,4 @@
 *.git
-metrics*
 results*
 **/*.csv
 **/*.json

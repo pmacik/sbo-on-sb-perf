@@ -1,7 +1,7 @@
 FROM registry.redhat.io/ubi8/ubi
 ENV WORKSPACE /workspace
 ENV ARTIFACTS /mnt/artifacts
-ENV KUBECONFIG /mnt/kubeconfig/kubeconfig
+ENV KUBECONFIG ${WORKSPACE}/kubeconfig
 ENV PATH $PATH:$WORKSPACE     
 RUN mkdir -p ${ARTIFACTS}
 RUN mkdir -p ${WORKSPACE}
