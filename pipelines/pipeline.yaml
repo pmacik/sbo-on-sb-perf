@@ -51,8 +51,10 @@ spec:
         kind: Task
         name: sbo-perf-setup
       workspaces:
-        - name: artifacts
-          workspace: artifacts
+        - name: sandbox
+          workspace: sandbox
+        - name: metrics
+          workspace: metrics
       timeout: 5h
       params:
         - name: ocp-release
@@ -65,17 +67,15 @@ spec:
       taskRef:
         kind: Task
         name: sbo-perf-test
+      runAfter:
+        - sbo-perf-setup
       workspaces:
-        - name: artifacts
-          workspace: artifacts
+        - name: sandbox
+          workspace: sandbox
+        - name: metrics
+          workspace: metrics
       timeout: 5h
       params:
-        - name: ocp-release
-          value: "$(params.ocp-release)"
-        - name: ocp-version
-          value: "$(params.ocp-version)"
-        - name: ocp-release-dir
-          value: "$(params.ocp-release-dir)"
         - name: user-ns-prefix
           value: "$(params.user-ns-prefix)"
         - name: namespaces
@@ -90,5 +90,20 @@ spec:
           value: "$(params.values-per-configmap)"
         - name: bindings
           value: "$(params.bindings)"
+    - name: sbo-perf-artifacts
+      taskRef:
+        kind: Task
+        name: sbo-perf-artifacts
+      runAfter:
+        - sbo-perf-test
+      workspaces:
+        - name: sandbox
+          workspace: sandbox
+        - name: metrics
+          workspace: metrics
+        - name: artifacts
+          workspace: artifacts
   workspaces:
+    - name: sandbox
+    - name: metrics
     - name: artifacts

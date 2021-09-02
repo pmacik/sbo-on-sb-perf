@@ -9,4 +9,4 @@ else
     mv -vf $WORKSPACE/ocp4-aws/current/auth/kubeconfig $WORKSPACE/kubeconfig
 fi
 
-curl -s https://raw.githubusercontent.com/redhat-developer/service-binding-operator/master/install.sh | OPERATOR_INDEX_IMAGE=quay.io/pmacik/servicebinding-operator:index SKIP_REGISTRY_LOGIN=true /bin/bash -s
+curl -s https://raw.githubusercontent.com/redhat-developer/service-binding-operator/master/install.sh | OPERATOR_INDEX_IMAGE=quay.io/pmacik/servicebinding-operator:index CATSRC_NAMESPACE=openshift-marketplace SKIP_REGISTRY_LOGIN=true /bin/bash -s

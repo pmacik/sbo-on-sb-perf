@@ -7,7 +7,7 @@ ifeq ($(shell test "$(firstword $(MAKECMDGOALS))" = build -o "$(firstword $(MAKE
 endif
 
 IMAGE_BASE_REF?=quay.io/pmacik/tekton-poc
-STEPS ?= setup create-ocp test metrics
+STEPS ?= setup create-ocp test metrics artifacts
 
 .PHONY: build
 build:
@@ -43,4 +43,8 @@ install-pipeline:
 
 .PHONY: sbo-perf
 sbo-perf:
-	tkn pipeline start sbo-perf --timeout 5h --workspace name=artifacts,claimName=sbo-perf-artifacts,subPath=.
+	tkn pipeline start sbo-perf --timeout 5h \
+		--workspace name=artifacts,claimName=sbo-perf-artifacts,subPath=. \
+		--workspace name=sandbox,volumeClaimTemplateFile=pipeline.sandbox.volume.yaml,subPath=. \
+		--workspace name=metrics,volumeClaimTemplateFile=pipeline.sandbox.volume.yaml,subPath=. \
+		--use-param-defaults
